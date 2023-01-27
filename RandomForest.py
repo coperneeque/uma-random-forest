@@ -1,6 +1,9 @@
 from random import randrange
 from random import choice
-import random
+from random import sample
+from scipy.stats import entropy
+from collections import Counter
+import numpy as np
 
 def test_split(index, value, dataset):
 	left, right = list(), list()
@@ -25,6 +28,22 @@ def gini_index(groups, classes):
 		gini += (1.0 - score) * (size / n_instances)
 	return gini
 
+def info_gain(groups):
+	left = groups[0]
+	right = groups[1]
+	classL = list()
+	classR = list()
+	for elem in left:
+		classL.append(elem[-1])
+	for elem in right:
+		classR.append(elem[-1])
+	classT = classL + classR
+	prob = np.array(list(Counter(classT).values()))/len(classT)
+	probL = np.array(list(Counter(classL).values()))/len(classL)
+	probR = np.array(list(Counter(classR).values()))/len(classR)
+	avg = (entropy(probL) + entropy(probR))/2
+	return entropy(prob) - avg
+
 def get_split_tournament(dataset, features):
 	class_values = list(set(row[-1] for row in dataset))
 	b_index, b_value, b_groups = 999, 999, None
@@ -43,19 +62,21 @@ def get_split_tournament(dataset, features):
 	for test in tests_l:
 		res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
 	while len(res_l) > 1:
-		test1, test2 = random.sample(res_l, 2)
+		test1, test2 = sample(res_l, 2)
 		# groups1 = test_split(test1[0], test1[1], dataset)
 		# groups2 = test_split(test2[0], test2[1], dataset)
 		# # groups = test_split(index, value, dataset)
 		gini1 = gini_index(test1[2], class_values)
 		gini2 = gini_index(test2[2], class_values)
+		# gini1 = info_gain(test1[2])
+		# gini2 = info_gain(test2[2])
 		if gini1 < gini2:
 			res_l.remove(test2)
 			groups = test1[2]
 		else:
 			groups = test2[2]
 			res_l.remove(test1)
-	b_index, b_value, b_groups = tests_l[0][0], tests_l[0][1], groups
+	b_index, b_value, b_groups = res_l[0][0], res_l[0][1], groups
 	return {'index':b_index, 'value':b_value, 'groups':b_groups}
 
 def to_terminal(group):
@@ -99,12 +120,9 @@ def predict(node, row):
 		else:
 			return node['right']
 
-def subsample(dataset):
-# def subsample(dataset, ratio):
+def bootstrap_sample(dataset):
 	sample = list()
-	# n_sample = round(len(dataset))
-	# n_sample = round(len(dataset) * ratio)
-	while len(sample) < len(dataset):  #  ewentualnie w jedenj linii po pythonowemu zrobic
+	while len(sample) < len(dataset):
 		index = randrange(len(dataset))
 		sample.append(dataset[index])
 	return sample
@@ -117,7 +135,7 @@ def random_forest(train, test, max_depth, min_size, n_trees, tournament_size):
 	trees = list()
 	for i in range(n_trees):
 		features = set()
-		sample = subsample(train)
+		sample = bootstrap_sample(train)
 		while len(features) < tournament_size:
 			index = randrange(len(sample[0])-1)
 			features.add(index)
