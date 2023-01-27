@@ -44,10 +44,9 @@ def info_gain(groups):
 	avg = (entropy(probL) + entropy(probR))/2
 	return entropy(prob) - avg
 
-def get_split_tournament(dataset, features):
+def get_split_tournament(dataset, features, tournament_size):
 	class_values = list(set(row[-1] for row in dataset))
 	b_index, b_value, b_groups = 999, 999, None
-	# features = list()
 	tests_l = list()
 	for index in features:
 		values_list = set()
@@ -56,16 +55,20 @@ def get_split_tournament(dataset, features):
 		values_list = list(values_list)
 		for val in values_list:
 			tests_l.append((index, val))
-	# value = choice(values_list)
 	groups = None
 	res_l = list()
-	for test in tests_l:
-		res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
+	if tournament_size > 0:
+		for i in range(tournament_size):
+			if(len(tests_l)==0):
+				break
+			test = choice(tests_l)
+			tests_l.remove(test)
+			res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
+	else:
+		for test in tests_l:
+			res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
 	while len(res_l) > 1:
 		test1, test2 = sample(res_l, 2)
-		# groups1 = test_split(test1[0], test1[1], dataset)
-		# groups2 = test_split(test2[0], test2[1], dataset)
-		# # groups = test_split(index, value, dataset)
 		gini1 = gini_index(test1[2], class_values)
 		gini2 = gini_index(test2[2], class_values)
 		# gini1 = info_gain(test1[2])
@@ -83,7 +86,7 @@ def to_terminal(group):
 	outcomes = [row[-1] for row in group]
 	return max(set(outcomes), key=outcomes.count)
 
-def split(node, max_depth, min_size, tournament_size, depth):
+def split(node, max_depth, min_size, features, depth, tournament_size):
 	left, right = node['groups']
 	del(node['groups'])
 	if not left or not right:
@@ -95,17 +98,17 @@ def split(node, max_depth, min_size, tournament_size, depth):
 	if len(left) <= min_size:
 		node['left'] = to_terminal(left)
 	else:
-		node['left'] = get_split_tournament(left, tournament_size)
-		split(node['left'], max_depth, min_size, tournament_size, depth+1)
+		node['left'] = get_split_tournament(left, features, tournament_size)
+		split(node['left'], max_depth, min_size, features, depth+1, tournament_size)
 	if len(right) <= min_size:
 		node['right'] = to_terminal(right)
 	else:
-		node['right'] = get_split_tournament(right, tournament_size)
-		split(node['right'], max_depth, min_size, tournament_size, depth+1)
+		node['right'] = get_split_tournament(right, features, tournament_size)
+		split(node['right'], max_depth, min_size, features, depth+1, tournament_size)
 
-def build_tree(train, max_depth, min_size, tournament_size):
-	root = get_split_tournament(train, tournament_size)
-	split(root, max_depth, min_size, tournament_size, 1)
+def build_tree(train, max_depth, min_size, features, tournament_size):
+	root = get_split_tournament(train, features, tournament_size)
+	split(root, max_depth, min_size, features, 1, tournament_size)
 	return root
 
 def predict(node, row):
@@ -131,15 +134,15 @@ def bagging_predict(trees, row):
 	predictions = [predict(tree, row) for tree in trees]
 	return max(set(predictions), key=predictions.count)
 
-def random_forest(train, test, max_depth, min_size, n_trees, tournament_size):
+def random_forest(train, test, max_depth, min_size, n_trees, feature_size, tournament_size):
 	trees = list()
 	for i in range(n_trees):
 		features = set()
 		sample = bootstrap_sample(train)
-		while len(features) < tournament_size:
+		while len(features) < feature_size:
 			index = randrange(len(sample[0])-1)
 			features.add(index)
-		tree = build_tree(sample, max_depth, min_size, features)
+		tree = build_tree(sample, max_depth, min_size, features, tournament_size)
 		trees.append(tree)
 	predictions = [bagging_predict(trees, row) for row in test]
 	return(predictions)
