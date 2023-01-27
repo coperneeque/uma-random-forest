@@ -120,6 +120,7 @@ def bagging_predict(trees, row):
 def random_forest(train, test, max_depth, min_size, n_trees, feature_size, tournament_size):
 	trees = list()
 	for i in range(n_trees):
+		# print(f"drzewo {i} ...", end="")
 		features = set()
 		sample = bootstrap_sample(train)
 		while len(features) < feature_size:
@@ -127,5 +128,6 @@ def random_forest(train, test, max_depth, min_size, n_trees, feature_size, tourn
 			features.add(index)
 		tree = build_tree(sample, max_depth, min_size, features, tournament_size)
 		trees.append(tree)
+	print(". ", end="", flush=True)
 	predictions = [bagging_predict(trees, row) for row in test]
 	return(predictions)

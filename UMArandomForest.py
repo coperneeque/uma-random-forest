@@ -31,6 +31,7 @@ if __name__ == "__main__":
 	tournament_size = int(sys.argv[3])
 	for n_trees in [5, 10, 15]:
 		scores = e.evaluate_algorithm(dataset, rf.random_forest, n_folds, max_depth, min_size, n_trees, feature_size, tournament_size)
+		print()
 		print('Liczba drzew w lesie: %d' % n_trees)
 		print('Poprawnosc prdykcji w kolejnych iteracjach: %s' % scores)
 		print('Srednia poprawnosc predykcji: %.2f%%' % (sum(scores)/float(len(scores))))
