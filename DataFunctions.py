@@ -22,7 +22,7 @@ def str_column_to_float(dataset, column):
 			# print()
 			row[column] = nan
 
-def clean_nans(dataset):
+def clean_nans_float(dataset):
 	"""Zastępuje brakujące wartości atrybutów medianami"""
 	num_nans = 0
 	num_attributes = len(dataset[0]) - 1  # ostatni to klasa
@@ -39,6 +39,28 @@ def clean_nans(dataset):
 			if row[i] is nan:
 				num_nans += 1
 				row[i] = medians[i]
+	return num_nans
+
+def clean_nans_labels(dataset):
+	"""Usuwa przykłady z brakującymi wartościami atrybutów"""
+	num_nans = 0
+	num_attributes = len(dataset[0]) - 1  # ostatni to klasa
+	# rows_to_del = []
+	# print("Liczba atybutów %s" %num_attributes)
+		# row_idx = 0
+		# while row_idx < len(dataset):
+		# 	row_idx += 1
+	for row_idx in reversed(range(len(dataset))):
+	# for row_idx in range(len(dataset)):
+		for i in range(num_attributes):
+			if dataset[row_idx][i] == "":
+				# print(dataset[row_idx])
+				# print(f"Długość przykładu (bez klasy):\n{len(dataset[row_idx]) - 1}")
+				del dataset[row_idx]
+				# rows_to_del.append(row_idx)
+				num_nans += 1
+				# row_idx -= 1  # trzeba powrócić do tego wiersza, bo po usunięciu następny się przesunął tutaj, gdzie ejsteśmy
+	# del dataset[rows_to_del]
 	return num_nans
 
 def str_column_to_int(dataset, column):
