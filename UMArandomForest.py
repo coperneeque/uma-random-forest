@@ -21,7 +21,7 @@ if __name__ == "__main__":
 		sys.exit(1)
 	num_nans = df.clean_nans(dataset)
 	print(f"Uzupełniono {num_nans} brakujących wartości.")
-	sys.exit()
+	# sys.exit()
 	n_folds = 5
 	max_depth = 7
 	min_size = 1
