@@ -47,6 +47,7 @@ def info_gain(groups):
 def get_split_tournament(dataset, features, tournament_size):
 	class_values = list(set(row[-1] for row in dataset))
 	b_index, b_value, b_groups = 999, 999, None
+# 
 	tests_l = list()
 	for index in features:
 		values_list = set()
@@ -55,6 +56,7 @@ def get_split_tournament(dataset, features, tournament_size):
 		values_list = list(values_list)
 		for val in values_list:
 			tests_l.append((index, val))
+	print(len(tests_l))
 	groups = None
 	res_l = list()
 	if tournament_size > 0:
@@ -63,16 +65,14 @@ def get_split_tournament(dataset, features, tournament_size):
 				break
 			test = choice(tests_l)
 			tests_l.remove(test)
-			res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
+			res_l.append((test[0], test[1], test_split(test[0], test[1], dataset)))
 	else:
 		for test in tests_l:
-			res_l.append((test[0],test[1],test_split(test[0],test[1],dataset)))
+			res_l.append((test[0], test[1], test_split(test[0], test[1], dataset)))
 	while len(res_l) > 1:
 		test1, test2 = sample(res_l, 2)
 		gini1 = gini_index(test1[2], class_values)
 		gini2 = gini_index(test2[2], class_values)
-		# gini1 = info_gain(test1[2])
-		# gini2 = info_gain(test2[2])
 		if gini1 < gini2:
 			res_l.remove(test2)
 			groups = test1[2]
