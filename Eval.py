@@ -19,6 +19,25 @@ def accuracy_metric(actual, predicted):
 			correct += 1
 	return correct / float(len(actual)) * 100.0
 
+# def get_confusion_matrix(actual, predicted):
+# 	assert len(actual) == len(predicted)
+# 	cm = []
+# 	tp, fn, fp, tn = 0, 0, 0, 0
+# 	#        predicted
+# 	#         P    N
+# 	#  a    +----+----+
+# 	#  c  P | TP | FN |
+# 	#  t    +----+----+
+# 	#  u  N | FP | TN |
+# 	#  a    +----+----+
+# 	#  l
+
+# 	for i in range(len(actual)):
+# 		if actual[i] == predicted[i]:
+# 			tp = 0
+
+# 	return cm
+
 def evaluate_algorithm(dataset, algorithm, n_folds, *args):
 	folds = cross_validation_split(dataset, n_folds)
 	scores = list()
