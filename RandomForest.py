@@ -28,22 +28,6 @@ def gini_index(groups, classes):
 		gini += (1.0 - score) * (size / n_instances)
 	return gini
 
-def info_gain(groups):
-	left = groups[0]
-	right = groups[1]
-	classL = list()
-	classR = list()
-	for elem in left:
-		classL.append(elem[-1])
-	for elem in right:
-		classR.append(elem[-1])
-	classT = classL + classR
-	prob = np.array(list(Counter(classT).values()))/len(classT)
-	probL = np.array(list(Counter(classL).values()))/len(classL)
-	probR = np.array(list(Counter(classR).values()))/len(classR)
-	avg = (entropy(probL) + entropy(probR))/2
-	return entropy(prob) - avg
-
 def get_split_tournament(dataset, features, tournament_size):
 	class_values = list(set(row[-1] for row in dataset))
 	b_index, b_value, b_groups = 999, 999, None
@@ -56,7 +40,6 @@ def get_split_tournament(dataset, features, tournament_size):
 		values_list = list(values_list)
 		for val in values_list:
 			tests_l.append((index, val))
-	print(len(tests_l))
 	groups = None
 	res_l = list()
 	if tournament_size > 0:
@@ -82,7 +65,7 @@ def get_split_tournament(dataset, features, tournament_size):
 	b_index, b_value, b_groups = res_l[0][0], res_l[0][1], groups
 	return {'index':b_index, 'value':b_value, 'groups':b_groups}
 
-def to_terminal(group):
+def to_leaf(group):
 	outcomes = [row[-1] for row in group]
 	return max(set(outcomes), key=outcomes.count)
 
@@ -90,18 +73,18 @@ def split(node, max_depth, min_size, features, depth, tournament_size):
 	left, right = node['groups']
 	del(node['groups'])
 	if not left or not right:
-		node['left'] = node['right'] = to_terminal(left + right)
+		node['left'] = node['right'] = to_leaf(left + right)
 		return
 	if depth >= max_depth:
-		node['left'], node['right'] = to_terminal(left), to_terminal(right)
+		node['left'], node['right'] = to_leaf(left), to_leaf(right)
 		return
 	if len(left) <= min_size:
-		node['left'] = to_terminal(left)
+		node['left'] = to_leaf(left)
 	else:
 		node['left'] = get_split_tournament(left, features, tournament_size)
 		split(node['left'], max_depth, min_size, features, depth+1, tournament_size)
 	if len(right) <= min_size:
-		node['right'] = to_terminal(right)
+		node['right'] = to_leaf(right)
 	else:
 		node['right'] = get_split_tournament(right, features, tournament_size)
 		split(node['right'], max_depth, min_size, features, depth+1, tournament_size)

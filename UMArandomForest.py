@@ -24,14 +24,12 @@ if __name__ == "__main__":
 	if datasetType == "discrete":
 		num_nans = df.clean_nans_labels(dataset)
 		print(f"Usunięto {num_nans} przykładów z brakującymi wartościami.")
-	# sys.exit()
 	n_folds = 5
 	max_depth = 7
 	min_size = 1
 	feature_size = int(2*sqrt(len(dataset[0])-1))
-	tournament_size = 0
-	# for n_trees in [5,15,25,50]:
-	for n_trees in [5]:
+	tournament_size = int(sys.argv[3])
+	for n_trees in [5, 10, 15]:
 		scores = e.evaluate_algorithm(dataset, rf.random_forest, n_folds, max_depth, min_size, n_trees, feature_size, tournament_size)
 		print('Liczba drzew w lesie: %d' % n_trees)
 		print('Poprawnosc prdykcji w kolejnych iteracjach: %s' % scores)
